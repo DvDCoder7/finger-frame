@@ -1,31 +1,25 @@
 const video = document.querySelector('#video');
 const canvas = document.querySelector('#cv');
+const txt = document.querySelector('#texto');
 const fps = 60;
 
 let width = 1280;
 let height = 720;
 canvasInterval = null;
 
-function drawImage() {
-  canvas.getContext('2d', { alpha: false }).drawImage(video, 0, 0, width, height);
-}
+var videoPaused = false;
 
-canvasInterval = window.setInterval(() => {
-  drawImage(video);
-}, 1000 / fps);
-
-video.onpause = function() {
-  clearInterval(canvasInterval);
-};
-video.onended = function() {
-  clearInterval(canvasInterval);
-};
-video.onplay = function() {
-  clearInterval(canvasInterval);
-  canvasInterval = window.setInterval(() => {
-    drawImage(video);
-  }, 1000 / fps);
-};
+function pauseVideo() {
+    videoPaused = !videoPaused;
+    const tracks = video.srcObject.getTracks();
+    for (var i = 0; i < tracks.length; i++) {
+        var track = tracks[i];
+        track.enabled = videoPaused;
+    }
+    // if(videoPaused) canvas.hidden = true;
+    // else canvas.hidden = false;
+    console.log("aaa");
+} 
 
 async function criarDetector() {
     const model = handPoseDetection.SupportedModels.MediaPipeHands;
@@ -44,6 +38,58 @@ async function detectar(detector) {
     return hands;
 }
 
+let pegar_coordenada = (hands) => {
+    let r = [];
+    if(hands.length >= 1) {
+        r.push(hands[0].keypoints[4]);
+        r.push(hands[0].keypoints[8]);
+    }
+    if(hands.length == 2) {
+        r.push(hands[1].keypoints[4]);
+        r.push(hands[1].keypoints[8]);
+    }
+    return r;
+}
+
+// Gambiarra que funciona p 4 coordenadas
+let ordena = (coordenadas) => {
+    if(!coordenadas) return [];
+    if(coordenadas.length < 4) return coordenadas;
+    coordenadas.sort((a, b) => {return (a.x - b.x)});
+    if(coordenadas[0].y < coordenadas[1].y) [coordenadas[0], coordenadas[1]] = [coordenadas[1], coordenadas[0]];
+    if(coordenadas[2].y > coordenadas[3].y) [coordenadas[2], coordenadas[3]] = [coordenadas[3], coordenadas[2]];
+    return coordenadas;
+}
+
+function drawImage(video, coordenadas) {
+    ctx = canvas.getContext('2d', { alpha: false });
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(video, 0, 0, width, height);    
+
+    ctx.lineWidth = 12;
+    ctx.strokeStyle = "orange";
+
+    ctx.beginPath();
+    coordenadas = ordena(coordenadas);
+
+    if(coordenadas.length > 0) ctx.moveTo(coordenadas[0].x, coordenadas[0].y);
+
+    let str = "";
+    coordenadas.forEach((el) => {
+        ctx.lineTo(el.x, el.y);
+        str += `${el.x}, ${el.y}<br />`; 
+    })
+    texto.innerHTML = str;
+    ctx.closePath();
+    ctx.stroke();
+}
+
+async function updateVideo() {
+    let hands = await detectar(detector);
+    let coordenadas = pegar_coordenada(hands);
+    drawImage(video, coordenadas);
+}
+
 navigator.mediaDevices
 .getUserMedia({
     video: true,
@@ -60,14 +106,23 @@ navigator.mediaDevices
         console.log(width, height);
         detector = await criarDetector();
 
-        setInterval(async () => {
-            let hands = await detectar(detector);
-            if(hands.length >= 1) {
-                console.log(hands[0].keypoints[4]);
-            } else {
-                console.log(hands.length);
-            }
-        }, 1000/fps); 
+        updateInterval = setInterval(async () => {
+            updateVideo();
+        }, 1000/fps);
+
+        video.onpause = function() {
+            clearInterval(updateInterval);
+        };
+        video.onended = function() {
+            clearInterval(updateInterval);
+        };
+        video.onplay = function() {
+            clearInterval(updateInterval);
+            updateInterval = window.setInterval(() => {
+                updateVideo();
+            }, 1000 / fps);
+        };
+
     };
 })
 .catch((error) => {

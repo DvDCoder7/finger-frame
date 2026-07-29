@@ -9,10 +9,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
     <!-- Optional: Include below scripts if you want to use MediaPipe runtime. -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"> </script> 
+    <style>
+        #cv {
+            transform: rotateY(180deg);
+            -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+            -moz-transform:rotateY(180deg); /* Firefox */
+        }
+
+    </style>
 </head>
 <body>
     <video hidden autoplay id="video" crossorigin="anonymous"></video>
     <canvas id="cv"></canvas>
+    <h1>Coordenadas:</h1>
+    <button onclick="pauseVideo()">Pause</button>
+    <p id="texto"></p>
     <script src="./index.js"></script>
 </body>
 </html>
