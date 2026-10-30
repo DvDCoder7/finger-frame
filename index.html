@@ -3,27 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TFJS</title>
+    <meta name="theme-color" content="#0B2F31">
+    <title>Finger Frame</title>
+    <link rel="stylesheet" href="./styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
     <!-- Optional: Include below scripts if you want to use MediaPipe runtime. -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"> </script> 
-    <style>
-        #cv {
-            transform: rotateY(180deg);
-            -webkit-transform:rotateY(180deg); /* Safari and Chrome */
-            -moz-transform:rotateY(180deg); /* Firefox */
-        }
-
-    </style>
 </head>
 <body>
     <video hidden autoplay id="video" crossorigin="anonymous"></video>
-    <canvas id="cv"></canvas>
-    <h1>Coordenadas:</h1>
-    <button onclick="pauseVideo()">Pause</button>
-    <p id="texto"></p>
+    <div class="page-shell">
+        <header class="topbar">
+            <a class="brand" href="#" aria-label="Finger Frame home">
+                <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                <span>finger<span class="brand-accent">frame</span></span>
+            </a>
+            <span class="topbar-note">A little vision experiment</span>
+        </header>
+
+        <main>
+            <section class="intro">
+                <p class="eyebrow">LIVE CAMERA · HAND TRACKING</p>
+                <h1>Frame the moment<span>.</span></h1>
+                <p class="intro-copy">Use your fingertips to shape a window into the image. Choose a look and make it your own.</p>
+            </section>
+
+            <section class="app-layout" aria-label="Camera and polygon filter controls">
+                <div class="preview-card">
+                    <div class="preview-heading">
+                        <div>
+                            <p class="eyebrow">YOUR CANVAS</p>
+                            <h2>Camera preview</h2>
+                        </div>
+                        <span class="live-indicator"><span></span> LIVE</span>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="cv2"></canvas>
+                        <canvas id="cv"></canvas>
+                    </div>
+                    <p class="preview-tip"><span aria-hidden="true">✳</span> Show both hands and bring your thumb and index fingertips into view.</p>
+                </div>
+
+                <aside class="sidebar">
+                    <div class="panel-heading">
+                        <p class="eyebrow">MAKE IT YOURS</p>
+                        <h2>Polygon filter</h2>
+                    </div>
+
+                    <section class="control-section">
+                        <h3>Choose a look</h3>
+                        <div class="filter-options" role="group" aria-label="Polygon filter">
+                            <button class="filter-button" type="button" data-filter="grayscale" aria-pressed="true">
+                                <span class="filter-icon grayscale-icon" aria-hidden="true">◐</span>
+                                <span>Grayscale</span>
+                            </button>
+                            <button class="filter-button" type="button" data-filter="border" aria-pressed="false">
+                                <span class="filter-icon border-icon" aria-hidden="true">◫</span>
+                                <span>Border</span>
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="control-section border-settings">
+                        <h3>Border detail</h3>
+                        <div class="slider-control">
+                            <label for="contrast-threshold">Contrast threshold <output id="contrast-value" for="contrast-threshold">0.02</output></label>
+                            <input id="contrast-threshold" type="range" min="0" max="0.05" step="0.001" value="0.02">
+                            <p>Lower values pick up subtler edges.</p>
+                        </div>
+                        <div class="slider-control">
+                            <label for="neighbor-threshold">Clean-up strength <output id="neighbor-value" for="neighbor-threshold">2</output></label>
+                            <input id="neighbor-threshold" type="range" min="1" max="8" step="1" value="2">
+                            <p>More neighbors remove more isolated dots.</p>
+                        </div>
+                    </section>
+
+                    <section class="control-section">
+                        <h3>Shape behavior</h3>
+                        <label class="toggle-control" for="auto-order">
+                            <span class="toggle-copy">
+                                <strong>Auto-order polygon</strong>
+                                <small>Keep the shape from crossing itself</small>
+                            </span>
+                            <input id="auto-order" type="checkbox" checked>
+                            <span class="toggle-track" aria-hidden="true"></span>
+                        </label>
+                    </section>
+
+                    <section class="coordinate-section">
+                        <div class="coordinate-heading">
+                            <h3>Fingertip coordinates</h3>
+                            <button class="pause-button" type="button" onclick="pauseVideo()">Pause camera</button>
+                        </div>
+                        <p id="texto" class="coordinates" aria-live="polite">Waiting for hands…</p>
+                    </section>
+                </aside>
+            </section>
+        </main>
+        <footer class="page-footer"><span>Made for curious hands</span><span class="footer-dot">✳</span></footer>
+    </div>
+    <script src="./shaders.js"></script>
     <script src="./index.js"></script>
 </body>
 </html>
